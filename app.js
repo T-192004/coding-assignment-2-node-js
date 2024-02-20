@@ -69,7 +69,7 @@ app.post('/register/', async (request, response) => {
 /////////-------------API 2 LOGIN--------------
 
 app.post('/login/', async (request, response) => {
-  console.log(request.body)
+  console.log(request.username)
   const {username, password} = request.body
   const checkUsernameQuery = `
   SELECT 
@@ -92,7 +92,7 @@ app.post('/login/', async (request, response) => {
       response.status(400)
       response.send('Invalid password')
     } else {
-      const jwtToken = await jwt.sign('MY_SECRET_TOKEN', username)
+      const jwtToken = await jwt.sign(username, 'MY_SECRET_TOKEN')
       console.log('USER LOGIN SUCCESSFULLY')
       console.log({jwtToken})
       response.status(200)
@@ -123,6 +123,8 @@ const authenticationJWToken = (request, response, next) => {
         response.send('Invalid JWT Token')
       } else {
         request.username = payload
+        console.log(payload)
+        console.log('JWT TOKEN IS CORRECT')
         next()
       }
     })
@@ -135,6 +137,7 @@ app.get(
   '/user/tweets/feed/',
   authenticationJWToken,
   async (request, response) => {
+    console.log(request.username)
     console.log('AUTHENTICATION PASSED')
   },
 )
