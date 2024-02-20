@@ -93,8 +93,9 @@ app.post('/login/', async (request, response) => {
       response.send('Invalid password')
     } else {
       const jwtToken = await jwt.sign('MY_SECRET_TOKEN', username)
-      //console.log({jwtToken})
-      //response.status(200)
+      console.log('USER LOGIN SUCCESSFULLY')
+      console.log({jwtToken})
+      response.status(200)
       response.send({jwtToken})
     }
   }
@@ -102,15 +103,40 @@ app.post('/login/', async (request, response) => {
 
 ////////------------------AUTHENTICATION JWTOKEN--------------
 
-const authenticationJWToken = async (request, response, next) => {
-  let jwToken = null
-  const auth = request.headers['authorization']
-  console.log(auth)
-  jwToken = auth.split(' ')[1]
-  const isJWTokenValid = await jwt.verify(jwToken)
-  console.log(isJWTokenValid)
+const authenticationJWToken = (request, response, next) => {
+  let jwToken
+  const authHeader = request.headers['authorization']
+
+  if (authHeader !== undefined) {
+    jwToken = authHeader.split(' ')[1]
+    console.log(authHeader)
+  }
+  if (jwToken === undefined) {
+    response.status(401)
+    response.send('Invalid JWT Token')
+  } else {
+    jwt.verify(jwToken, 'MY_SECRET_TOKEN', async (error, payload) => {
+      if (error) {
+        console.log(payload)
+        console.log('ERROR WHILE VERIFYING JWT TOKEN')
+        response.status(401)
+        response.send('Invalid JWT Token')
+      } else {
+        request.username = payload
+        next()
+      }
+    })
+  }
 }
 
 /////------------API 3  latest tweets of people whom the user follows--------------
+
+app.get(
+  '/user/tweets/feed/',
+  authenticationJWToken,
+  async (request, response) => {
+    console.log('AUTHENTICATION PASSED')
+  },
+)
 
 module.exports = app
